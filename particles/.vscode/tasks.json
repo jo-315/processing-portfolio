@@ -7,7 +7,7 @@
       "type": "process",
       "args": [
         "--force",
-        "--sketch=${workspaceRoot}/dev",
+        "--sketch=${workspaceRoot}/particles/src",
         "--run"
       ],
       "group": {
