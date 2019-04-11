@@ -1,4 +1,4 @@
-// import java.util.Iterator;
+import java.util.Iterator;
 
 final float GRAVITY = -0.1;
 
@@ -13,9 +13,9 @@ void draw() {
   particles.update();
 }
 
-void keyPressed() {
+void mouseMoved() {
   // add pressed key value
-  particles.particles.add(new Particle(new PVector(mouseX, mouseY), key));
+  particles.particles.add(new Particle(new PVector(mouseX, mouseY)));
 }
 
 void updateBackground() {
@@ -29,18 +29,18 @@ class Particles {
 
   void update() {
     // particlesのデータがある場合の処理を記述→ここでparticleのデータは持たないので、iteratorを使う
-    Iterator<Particle> currentParticle = particles.iterator();
+    Iterator<Particle> particleIterator = particles.iterator();
 
-    while (i.hasNext()) {
-      Particle nextParticle = i.next();
+    while (particleIterator.hasNext()) {
+      Particle nextParticle = particleIterator.next();
 
       // Remove any particles outside of the screen
-      if (nextParticle.position.x > width ||
-        nextParticle.position.x < 0 ||
-        nextParticle.position.y > height ||
-        nextParticle.position.y < 0) {
-          currentParticle.remove();
-          return;
+      if (nextParticle.position.x > width
+        || nextParticle.position.x < 0
+        || nextParticle.position.y > height
+        || nextParticle.position.y < 0) {
+          particleIterator.remove();
+          continue;
       }
 
       // Apply gravity
@@ -51,9 +51,11 @@ class Particles {
 
       // Remove dead particles
       if (nextParticle.isFinished()) {
-        nextParticle.remove();
+        particleIterator.remove();
+        continue;
       } else {
         nextParticle.display();
+        continue;
       }
     }
   }
@@ -71,15 +73,13 @@ class Particle {
   float size = random(0.1, 2.0);
   float r, g, b;
   int lifespan = 255;
-  String pressedValue;
 
-  Particle(PVector p, String key) {
+  Particle(PVector p) {
     position = new PVector(p.x, p.y);
     acc = new PVector(random(0.1, 1.5), 0);
     r = random (1000, 255);
     g = random (0, 50);
     b = 0;
-    pressedValue = key;
   }
 
   public void move() {
@@ -100,9 +100,7 @@ class Particle {
 		// Colour based on x and y velocity
     fill(constrain(abs(this.vel.y) * 100, 0, 255), constrain(abs(this.vel.x) * 100, 0, 255), b, lifespan);
 
-    // ellipse(position.x, position.y, size * 4, size * 4);
-    textSize(size * 4);
-    text(pressedValue, position.x, position.y);
+    ellipse(position.x, position.y, size * 4, size * 4);
   }
 
   public boolean isFinished() {
