@@ -1,126 +1,111 @@
-import java.util.Iterator;
+// import java.util.Iterator;
 
 final float GRAVITY = -0.1;
-final boolean MOTION_BLUR = true;
 
-ParticleSystem system = new ParticleSystem();
+Particles particles = new Particles();
 
 void setup () {
-fullscreen ();
-}
-void draw()
-{
-  drawBackground();
-  
-  system.update();
+  size(1200, 800);;
 }
 
-void mouseMoved()
-{ 
-  system.particles.add(new Particle(new PVector(mouseX, mouseY)));
-	system.particles.add(new Particle(new PVector(mouseX, mouseY)));
-	system.particles.add(new Particle(new PVector(mouseX, mouseY)));
+void draw() {
+  updateBackground();
+  particles.update();
 }
 
-void drawBackground()
-{
-  if (MOTION_BLUR) {
-    // Background with motion blur
-    noStroke();
-    fill(200, 200);
-    rect(0, 0, width, height);
-  } else {
-    // Normal background
-    background(0);
-  }
+void keyPressed() {
+  // add pressed key value
+  particles.particles.add(new Particle(new PVector(mouseX, mouseY), key));
 }
 
-class ParticleSystem
-{
+void updateBackground() {
+  noStroke();
+  fill(24, 31, 28);
+  rect(0, 0, width, height);
+}
+
+class Particles {
   ArrayList<Particle> particles = new ArrayList<Particle>();
-  
-  void update()
-  {
-    Iterator<Particle> i = particles.iterator();
+
+  void update() {
+    // particlesのデータがある場合の処理を記述→ここでparticleのデータは持たないので、iteratorを使う
+    Iterator<Particle> currentParticle = particles.iterator();
 
     while (i.hasNext()) {
-      Particle p = i.next();
-      
+      Particle nextParticle = i.next();
+
       // Remove any particles outside of the screen
-      if (p.pos.x > width || p.pos.x < 0) {
-        i.remove();
-        continue;
-      } else if (p.pos.y > height || p.pos.y < 0) {
-        i.remove();
-        continue;
+      if (nextParticle.position.x > width ||
+        nextParticle.position.x < 0 ||
+        nextParticle.position.y > height ||
+        nextParticle.position.y < 0) {
+          currentParticle.remove();
+          return;
       }
-      
+
       // Apply gravity
-      p.applyForce(PVector.random2D());
-      
+      nextParticle.applyForce(PVector.random2D());
+
       // Move particle position
-      p.move();
-      
+      nextParticle.move();
+
       // Remove dead particles
-      if (p.isDead()) {
-        i.remove();  
+      if (nextParticle.isFinished()) {
+        nextParticle.remove();
       } else {
-        p.display();
+        nextParticle.display();
       }
-      
     }
   }
 }
 
-class Particle
-{
+class Particle {
   final static float BOUNCE = -0.5;
   final static float MAX_SPEED = 0.1;
-  
+
   PVector vel = new PVector(random(-MAX_SPEED, MAX_SPEED), random(-MAX_SPEED, MAX_SPEED));
   PVector acc = new PVector(0, 0);
-  PVector pos;
-  
+  PVector position;
+
   float mass = random(2, 2.5);
   float size = random(0.1, 2.0);
   float r, g, b;
   int lifespan = 255;
-  
-  Particle(PVector p)
-  {
-    pos = new PVector (p.x, p.y);
-    acc = new PVector (random(0.1, 1.5), 0);
+  String pressedValue;
+
+  Particle(PVector p, String key) {
+    position = new PVector(p.x, p.y);
+    acc = new PVector(random(0.1, 1.5), 0);
     r = random (1000, 255);
     g = random (0, 50);
     b = 0;
+    pressedValue = key;
   }
-  
-  public void move()
-  {
+
+  public void move() {
     vel.add(acc); // Apply acceleration
-    pos.add(vel); // Apply our speed vector
+    position.add(vel); // Apply our speed vector
     acc.mult(0);
-    
+
     size += 0.01; //0.015
     lifespan--;
   }
-  
-  public void applyForce(PVector force) 
-  {
+
+  public void applyForce(PVector force) {
     PVector f = PVector.div(force, mass);
     acc.add(f);
   }
-  
-  public void display()
-  {
+
+  public void display() {
 		// Colour based on x and y velocity
     fill(constrain(abs(this.vel.y) * 100, 0, 255), constrain(abs(this.vel.x) * 100, 0, 255), b, lifespan);
-    
-    ellipse(pos.x, pos.y, size * 4, size * 4);
+
+    // ellipse(position.x, position.y, size * 4, size * 4);
+    textSize(size * 4);
+    text(pressedValue, position.x, position.y);
   }
-  
-  public boolean isDead()
-  {
+
+  public boolean isFinished() {
     if (lifespan < 0) {
       return true;
     } else {
