@@ -10,7 +10,7 @@ float backgroundB = 28;
 ParticlesOperator[] particlesOperators = new ParticlesOperator[0];
 
 void setup () {
-  size(1200, 800);;
+  size(1200, 800);
 }
 
 void draw() {
@@ -20,13 +20,26 @@ void draw() {
     particlesOperators[index].update();
   }
 
-  // TODO: create particles randomly
+  // create particles randomly
+  int random_int = int(random(0, 1) * 100);
+  if(random_int < 20) {
+    float randomX = random(1, width);
+    float randomY = random(1, height);
+
+    // ※ #append needs type {ex.(ParticlesOperator[])}
+    particlesOperators = (ParticlesOperator[])append(
+      particlesOperators,
+      new ParticlesOperator(int(randomX), int(randomY))
+    );
+  }
 }
 
 void mouseClicked() {
   // create new particles group
-  // ※ #append needs type {ex.(ParticlesOperator[])}
-  particlesOperators = (ParticlesOperator[])append(particlesOperators, new ParticlesOperator(mouseX, mouseY));
+  particlesOperators = (ParticlesOperator[])append(
+    particlesOperators,
+    new ParticlesOperator(mouseX, mouseY)
+  );
 }
 
 void updateBackground() {
@@ -69,30 +82,24 @@ class ParticlesOperator {
           continue;
       }
 
-      // Apply gravity
-      // nextParticle.applyForce(PVector.random2D());
-
       // Move particle position
       nextParticle.move();
 
       // Remove dead particles
       if (nextParticle.isFinished()) {
-        if(index == 1) {
+        if(nextParticle.isExpload) {
           nextParticle.explode(particleIterator);
         } else {
           particleIterator.remove();
         }
-        continue;
       } else {
         nextParticle.display();
-        continue;
       }
     }
   }
 }
 
 class Particle {
-  final static float BOUNCE = -0.5;
   final static float MAX_SPEED = 0.5;
   final float PARTICLE_ANGLE = 360 / PARTICLE_COUNT;
 
@@ -102,6 +109,7 @@ class Particle {
   float size = random(1, 8.0);
   float r, g, b;
   int lifespan = 255;
+  boolean isExpload;
 
   Particle(PVector p, int index) {
     velocity = new PVector(
@@ -113,9 +121,10 @@ class Particle {
       MAX_SPEED * cos(radians(index * PARTICLE_ANGLE)) / 100,
       mass * GRAVITY / 50
     );
-    r = random (1000, 255);
-    g = random (0, 50);
-    b = 0;
+    r = random (0, 255);
+    g = random (0, 255);
+    b = random (0, 255);
+    isExpload = index == 0;
   }
 
   public void move() {
@@ -128,14 +137,11 @@ class Particle {
 
   public void applyForce(PVector force) {
     PVector f = PVector.div(force, mass);
-    // accacceleration.add(f);
   }
 
   public void display() {
 		// Colour based on x and y velocityocity
-    // fill(constrain(abs(this.velocity.y) * 100, 0, 255), constrain(abs(this.velocity.x) * 100, 0, 255), b, lifespan);
-    fill(constrain(abs(this.velocity.y) * 100, 0, 255), constrain(abs(this.velocity.x) * 100, 0, 255), b);
-
+    fill(r, g, b);
     ellipse(position.x, position.y, size, size);
   }
 
@@ -148,10 +154,15 @@ class Particle {
   }
 
   public void explode(Iterator<Particle> particleIterator) {
-    // explode
-    size += 0.5;
+    // stop position
+    velocity.mult(0);
+    accacceleration.mult(0);
 
-    if(size > width) {
+    // explode
+    size += 30;
+    display();
+
+    if(size > width * 2) {
       // set backgroung color
       backgroundR = r;
       backgroundG = g;
