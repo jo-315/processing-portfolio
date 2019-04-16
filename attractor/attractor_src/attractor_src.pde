@@ -13,7 +13,7 @@ void draw() {
 
 void updateBackground() {
   noStroke();
-  fill(0, 0, 0);
+  fill(0, 0, 0, 100);
   rect(0, 0, width, height);
 }
 
@@ -34,7 +34,9 @@ class Particle {
   }
 
   void updata() {
-    setTarget();
+    if (PVector.dist(target, currentPosition) < 100) {
+      setTarget();
+    }
     seek();
     velocity.add(acceleration);
     velocity.limit(maxSpeed);
