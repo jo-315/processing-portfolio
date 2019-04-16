@@ -2,7 +2,7 @@ Particle partcle = new Particle();
 
 void setup() {
   size(800, 600);
-  fill(0, 0, 0);
+  fill(200, 0, 0);
   rect(0, 0, width, height);
 }
 
@@ -19,24 +19,26 @@ void updateBackground() {
 
 class Particle {
   ArrayList<PVector> history = new ArrayList<PVector>();
+  ArrayList<PVector> targets = new ArrayList<PVector>();
   float size = 10;
   float maxSpeed = 5;
-  PVector currentPosition, target, velocity, acceleration;
+  float yNoise = 0;
+  PVector currentPosition, velocity, acceleration;
 
   Particle () {
     velocity = new PVector(0, 0);
     acceleration = new PVector(0, 0);
     currentPosition = new PVector(
-      random(width),
-      random(height)
+      0,
+      height / 2
     );
     setTarget();
   }
 
   void updata() {
-    if (PVector.dist(target, currentPosition) < 100) {
-      setTarget();
-    }
+    // if (target.y - currentPosition.y < 100) {
+      // setTarget();
+    // }
     seek();
     velocity.add(acceleration);
     velocity.limit(maxSpeed);
@@ -45,16 +47,29 @@ class Particle {
 
     display();
 
+    for (int index = 0; index < targets.size(); index++) {
+      PVector currentTarget = targets.get(index);
+      if (PVector.dist(currentTarget, currentPosition) < 10) {dismissTarget();}
+    }
+
     acceleration.mult(0);
 
     setHistory();
   }
 
   void setTarget() {
-    target = new PVector(
-      noise(random(width)) * width,
-      noise(random(height)) * height
-    );
+    targets.add(new PVector(
+      200,
+      300
+    ));
+    targets.add(new PVector(
+      300,
+      100
+    ));
+    targets.add(new PVector(
+      700,
+      500
+    ));
   }
 
   void setHistory() {
@@ -65,12 +80,23 @@ class Particle {
   }
 
   void seek() {
-    PVector targetVector = PVector.sub(target, currentPosition);
-    targetVector.normalize();
-    targetVector.mult(maxSpeed);
-    PVector force = PVector.sub(targetVector, velocity);
+    for (int index = 0; index < targets.size(); index++) {
+      PVector currentTarget = targets.get(index);
+      if (PVector.dist(currentTarget, currentPosition) > 500) {return;}
+      PVector targetVector = PVector.sub(currentTarget, currentPosition);
+      targetVector.normalize();
+      targetVector.mult(maxSpeed * 50 / PVector.dist(currentTarget, currentPosition));
+      PVector force = PVector.sub(targetVector, velocity);
 
-    applyForce(force);
+      applyForce(force);
+    }
+  }
+
+  void dismissTarget() {
+    for (int index = 0; index < targets.size(); index++) {
+      PVector currentTarget = targets.get(index);
+      if (currentPosition.x >= currentTarget.x) { targets.remove(index); }
+    }
   }
 
   void applyForce(PVector force) {
@@ -93,5 +119,11 @@ class Particle {
 
     fill(255, 225, 0);
     ellipse(currentPosition.x, currentPosition.y, size, size);
+
+    for (int index = 0; index < targets.size(); index++) {
+      PVector currentTarget = targets.get(index);
+      fill(255, 225, 255);
+      ellipse(currentTarget.x, currentTarget.y, size*3, size*3);
+    }
   }
 }
